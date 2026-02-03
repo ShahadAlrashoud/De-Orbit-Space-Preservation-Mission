@@ -24,7 +24,7 @@
             -webkit-user-select: none;
             user-select: none;
         }
-        canvas { display: block; }
+        canvas { display: block; touch-action: none; }
         .hud-gradient {
             background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.8) 100%);
         }
@@ -60,7 +60,7 @@
         .side-panel.collapsed { left: -320px; }
         .panel-content { width: 320px; padding: 24px; }
         .toggle-tab {
-            width: 40px; height: 140px; /* Larger for touch */
+            width: 40px; height: 140px; 
             background: #06b6d4;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; border-radius: 0;
@@ -585,7 +585,6 @@
         const mouse = new THREE.Vector2();
         const reticle = document.getElementById('reticle');
 
-        // Handling both Wheel (Computer) and Zoom Gesture (Tablet)
         window.addEventListener('wheel', (e) => {
             if (isVictory || isTransitioning || !missionStarted) return;
             e.preventDefault();
@@ -593,12 +592,16 @@
         }, { passive: false });
 
         // UNIFIED INTERACTION SYSTEM (POINTER EVENTS)
-        function updateTargeting() {
-            raycaster.params.Mesh.threshold = 1.0 + (cameraDistance / 25);
+        function updateTargeting(isTouch = false) {
+            // INCREASED THRESHOLD FOR TOUCH
+            const baseThreshold = isTouch ? 2.5 : 1.0;
+            raycaster.params.Mesh.threshold = baseThreshold + (cameraDistance / 25);
+            
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(debrisObjects);
             const scanningHud = document.getElementById('scanning-hud');
             
+            // Priority given to actual intersects, then current lockedTarget
             let activeTarget = (intersects.length > 0) ? intersects[0].object : (lockedTarget && !lockedTarget.userData.mitigating ? lockedTarget : null);
 
             if (activeTarget && !activeTarget.userData.mitigating) {
@@ -609,6 +612,8 @@
                 
                 const imgContainer = document.getElementById('target-image-container');
                 imgContainer.style.backgroundImage = `url("${config.img}")`;
+                
+                // Visual feedback
                 activeTarget.scale.set(2.5, 2.5, 2.5);
                 
                 if (currentTool === config.requiredTool) {
@@ -620,6 +625,7 @@
                     activeTarget.material.color.set(0xef4444);
                     document.getElementById('status-text').innerText = "WRONG TOOL";
                 }
+                return activeTarget;
             } else {
                 reticle.className = 'reticle';
                 if (!lockedTarget) {
@@ -630,6 +636,7 @@
                     document.getElementById('status-light').classList.replace('bg-cyan-400', 'bg-cyan-400/40');
                 }
                 debrisObjects.forEach(obj => { if (!obj.userData.mitigating && obj !== lockedTarget) { obj.scale.set(1,1,1); obj.material.color.set(0xffffff); } });
+                return null;
             }
         }
 
@@ -642,26 +649,25 @@
             reticle.style.left = e.clientX + 'px';
             reticle.style.top = e.clientY + 'px';
 
-            updateTargeting();
+            updateTargeting(e.pointerType === 'touch');
         });
 
         window.addEventListener('pointerdown', (e) => {
             if (isVictory || isTransitioning || !missionStarted) return;
             
-            // Re-update mouse pos for pointerdown (crucial for tablets where tap position matters instantly)
+            // Check if we hit a UI button
+            if (e.target.closest('.tool-btn') || e.target.closest('.toggle-tab') || e.target.closest('button')) return;
+
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
             
-            // Sync targeting on tap
-            updateTargeting();
+            // Instantly sync reticle position for tap feel
+            reticle.style.left = e.clientX + 'px';
+            reticle.style.top = e.clientY + 'px';
 
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(debrisObjects);
-            if (intersects.length > 0) {
-                const target = intersects.find(i => !i.object.userData.mitigating);
-                if (target) engageTool(target.object);
-            } else if (lockedTarget) {
-                engageTool(lockedTarget);
+            const found = updateTargeting(e.pointerType === 'touch');
+            if (found) {
+                engageTool(found);
             }
         });
 
