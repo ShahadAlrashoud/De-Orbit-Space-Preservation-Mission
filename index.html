@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>  De-Orbit: Space Preservation Mission  </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>De-Orbit: Space Preservation Mission</title>
 
     <link rel="icon" type="image/png" href="SPACE_ROCK.png">
 
@@ -12,7 +12,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cinzel:wght@700;900&family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; background-color: #000; overflow: hidden; font-family: 'Inter', sans-serif; color: #fff; cursor: crosshair; }
+        body { 
+            margin: 0; 
+            background-color: #000; 
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif; 
+            color: #fff; 
+            cursor: crosshair;
+            /* Prevent default touch behaviors like scrolling/zooming */
+            touch-action: none; 
+            -webkit-user-select: none;
+            user-select: none;
+        }
         canvas { display: block; }
         .hud-gradient {
             background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.8) 100%);
@@ -49,7 +60,7 @@
         .side-panel.collapsed { left: -320px; }
         .panel-content { width: 320px; padding: 24px; }
         .toggle-tab {
-            width: 32px; height: 120px;
+            width: 40px; height: 140px; /* Larger for touch */
             background: #06b6d4;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; border-radius: 0;
@@ -57,7 +68,7 @@
         }
         .arrow-icon {
             transition: transform 0.4s; border: solid black; border-width: 0 3px 3px 0;
-            display: inline-block; padding: 4px; transform: rotate(135deg);
+            display: inline-block; padding: 5px; transform: rotate(135deg);
         }
         .collapsed .arrow-icon { transform: rotate(-45deg); }
 
@@ -66,15 +77,17 @@
             position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 40;
             transition: opacity 0.5s ease;
+            width: 90%; max-width: 500px;
         }
         .tool-dock {
             background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px; border-radius: 16px; display: flex; gap: 8px; pointer-events: auto;
+            padding: 8px; border-radius: 20px; display: flex; gap: 10px; pointer-events: auto; width: 100%;
         }
         .tool-btn {
-            padding: 10px 24px; border-radius: 10px; font-size: 11px; font-weight: 800;
+            flex: 1; padding: 14px 10px; border-radius: 12px; font-size: 11px; font-weight: 800;
             text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s;
             border: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.5);
+            -webkit-tap-highlight-color: transparent;
         }
         .tool-btn.active { background: #06b6d4; color: #000; box-shadow: 0 0 20px rgba(6, 182, 212, 0.4); border-color: #06b6d4; }
 
@@ -137,16 +150,17 @@
         .certificate {
             background-color: #f9f5ef;
             background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');
-            padding: 70px 80px; width: 100%; max-width: 850px; position: relative;
+            padding: 40px; width: 100%; max-width: 850px; position: relative;
             color: #1a1a1a; box-shadow: 0 50px 100px rgba(0,0,0,0.8); text-align: center;
             border: 15px solid transparent;
             border-image: linear-gradient(45deg, #8a6d3b, #e6be8a, #8a6d3b, #f1e2c1, #8a6d3b) 1;
             outline: 2px solid #5d4d2d; outline-offset: -10px; overflow: hidden;
         }
+        @media(min-width: 768px) { .certificate { padding: 70px 80px; } }
 
         .cert-watermark {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 16rem; color: rgba(0, 51, 153, 0.04); font-weight: 900; pointer-events: none;
+            font-size: clamp(5rem, 20vw, 16rem); color: rgba(0, 51, 153, 0.04); font-weight: 900; pointer-events: none;
             font-family: 'Cinzel', serif; z-index: 0;
         }
 
@@ -163,36 +177,40 @@
         .typing { animation: typing 1s steps(40, end) forwards; }
 
         .cert-header { font-family: 'Cinzel', serif; letter-spacing: 0.5em; color: #5d6465; font-size: 0.6rem; margin-bottom: 25px; font-weight: 900; }
-        .cert-title { font-family: 'Cinzel', serif; font-size: 3.2rem; color: #1a1a1a; margin-bottom: 5px; line-height: 1; letter-spacing: -2px; }
-        .cert-subtitle { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; color: #8a6d3b; margin-bottom: 40px; }
+        .cert-title { font-family: 'Cinzel', serif; font-size: clamp(1.5rem, 5vw, 3.2rem); color: #1a1a1a; margin-bottom: 5px; line-height: 1; letter-spacing: -2px; }
+        .cert-subtitle { font-family: 'Playfair Display', serif; font-style: italic; font-size: clamp(1rem, 3vw, 1.4rem); color: #8a6d3b; margin-bottom: 20px; }
+        @media(min-width: 768px) { .cert-subtitle { margin-bottom: 40px; } }
 
         .cert-signature-line {
-            display: inline-block; position: relative; width: 70%; margin: 20px 0;
+            display: inline-block; position: relative; width: 80%; margin: 10px 0;
             border-bottom: 2px solid #2d3436; z-index: 10;
         }
         .cert-name-input {
             background: transparent; border: none; font-family: 'Great Vibes', cursive;
-            color: #003399; text-align: center; font-size: 4rem; width: 100%;
+            color: #003399; text-align: center; font-size: clamp(2rem, 8vw, 4rem); width: 100%;
             outline: none; padding-bottom: 0px; line-height: 1;
         }
-        .cert-name-input::placeholder { color: #d1d8de; font-style: normal; font-size: 1.5rem; font-family: 'Inter'; font-weight: 400; }
+        .cert-name-input::placeholder { color: #d1d8de; font-style: normal; font-size: 1.2rem; font-family: 'Inter'; font-weight: 400; }
 
-        .cert-body { font-family: 'Georgia', serif; font-size: 1.1rem; line-height: 1.7; color: #2d3436; max-width: 600px; margin: 0 auto 40px; position: relative; z-index: 10; }
+        .cert-body { font-family: 'Georgia', serif; font-size: clamp(0.9rem, 2vw, 1.1rem); line-height: 1.7; color: #2d3436; max-width: 600px; margin: 0 auto 20px; position: relative; z-index: 10; }
 
-        .cert-meta { display: flex; justify-content: space-between; border-top: 1px solid #d1ccc0; padding-top: 25px; font-family: 'Cinzel', serif; font-size: 0.6rem; color: #7f8c8d; text-align: left; position: relative; z-index: 10; }
-        .cert-meta b { color: #1a1a1a; display: block; font-size: 0.9rem; margin-top: 6px; font-weight: 900; }
+        .cert-meta { display: flex; justify-content: space-between; border-top: 1px solid #d1ccc0; padding-top: 25px; font-family: 'Cinzel', serif; font-size: 0.5rem; color: #7f8c8d; text-align: left; position: relative; z-index: 10; gap: 10px; }
+        @media(min-width: 768px) { .cert-meta { font-size: 0.6rem; } }
+        .cert-meta b { color: #1a1a1a; display: block; font-size: 0.75rem; margin-top: 6px; font-weight: 900; }
 
         .ink-stamp {
-            position: absolute; bottom: 35px; right: 35px; width: 130px; height: 130px;
+            position: absolute; bottom: 15px; right: 15px; width: 100px; height: 100px;
             border: 4px double #003399; border-radius: 50%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: #003399; font-family: 'Cinzel', serif; font-weight: 900;
             transform: rotate(-12deg); opacity: 0.85; z-index: 20;
             pointer-events: none; mix-blend-mode: multiply;
         }
-        .ink-stamp-inner { border: 1.5px solid #003399; border-radius: 50%; padding: 10px; width: 92%; height: 92%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .ink-stamp-text { font-size: 0.5rem; letter-spacing: 0.05em; line-height: 1.1; text-align: center; text-transform: uppercase; }
-        .ink-stamp-icon { width: 50px; height: 50px; margin-bottom: 4px; opacity: 0.8; }
+        @media(min-width: 768px) { .ink-stamp { bottom: 35px; right: 35px; width: 130px; height: 130px; } }
+        .ink-stamp-inner { border: 1.5px solid #003399; border-radius: 50%; padding: 5px; width: 92%; height: 92%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ink-stamp-text { font-size: 0.4rem; letter-spacing: 0.05em; line-height: 1.1; text-align: center; text-transform: uppercase; }
+        .ink-stamp-icon { width: 30px; height: 30px; margin-bottom: 2px; opacity: 0.8; }
+        @media(min-width: 768px) { .ink-stamp-icon { width: 50px; height: 50px; } }
         .ink-stamp-icon svg { width: 100%; height: 100%; stroke: #003399; fill: none; stroke-width: 1.2; }
 
         .debrief-container { width: 100%; max-width: 800px; text-align: center; padding: 0 0 100px; opacity: 0; transition: opacity 1s ease; }
@@ -200,15 +218,15 @@
         
         .reality-panel {
             background: rgba(0, 30, 60, 0.6); border: 1px solid rgba(6, 182, 212, 0.5);
-            border-radius: 20px; padding: 40px; margin-bottom: 30px; backdrop-blur: 20px;
+            border-radius: 20px; padding: 30px; margin-bottom: 30px; backdrop-filter: blur(20px);
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         }
 
-        .flourish { position: absolute; width: 140px; height: 140px; border: 2px solid #8a6d3b; opacity: 0.4; pointer-events: none; }
-        .f-tl { top: 30px; left: 30px; border-right: none; border-bottom: none; }
-        .f-tr { top: 30px; right: 30px; border-left: none; border-bottom: none; }
-        .f-bl { bottom: 30px; left: 30px; border-right: none; border-top: none; }
-        .f-br { bottom: 30px; right: 30px; border-left: none; border-top: none; }
+        .flourish { position: absolute; width: clamp(40px, 10vw, 140px); height: clamp(40px, 10vw, 140px); border: 2px solid #8a6d3b; opacity: 0.4; pointer-events: none; }
+        .f-tl { top: 15px; left: 15px; border-right: none; border-bottom: none; }
+        .f-tr { top: 15px; right: 15px; border-left: none; border-bottom: none; }
+        .f-bl { bottom: 15px; left: 15px; border-right: none; border-top: none; }
+        .f-br { bottom: 15px; right: 15px; border-left: none; border-top: none; }
 
         @media print {
             body * { visibility: hidden; }
@@ -287,7 +305,7 @@
                 </div>
 
                 <div class="cert-meta">
-                    <div>DATE OF MISSION<b>--/--/--</b></div>
+                    <div>DATE OF MISSION<b id="cert-date">--/--/--</b></div>
                     <div>TOTAL JUNK REMOVED<b id="final-mass">0 KG</b></div>
                     <div>CLEARANCE ID<b>GSF-ALPHA-PRIME-9</b></div>
                 </div>
@@ -310,18 +328,18 @@
 
         <div class="debrief-container" id="debrief-container">
             <div class="reality-panel">
-                <a href="https://platform.leolabs.space/visualization" target="_blank" class="inline-flex items-center gap-3 bg-cyan-500 hover:bg-white text-black px-10 py-5 rounded-2xl transition-all text-sm font-black uppercase tracking-widest pointer-events-auto shadow-[0_0_20px_rgba(6,182,212,0.4)] group mb-8">
+                <a href="https://platform.leolabs.space/visualization" target="_blank" class="inline-flex items-center gap-3 bg-cyan-500 hover:bg-white text-black px-6 md:px-10 py-4 md:py-5 rounded-2xl transition-all text-[10px] md:text-sm font-black uppercase tracking-widest pointer-events-auto shadow-[0_0_20px_rgba(6,182,212,0.4)] group mb-8">
                     View Real Space Junk in Real-Time
                     <svg class="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 </a>
-                <p class="text-white text-base font-medium leading-relaxed opacity-95 text-center">
+                <p class="text-white text-xs md:text-base font-medium leading-relaxed opacity-95 text-center">
                     You cleared 50 targets, but there is much more out there. <br>
                     Scientists track over <span class="text-cyan-400 font-bold">30,000 large objects</span> in orbit. <br>
                     There are millions of tiny, dangerous pieces that we still cannot see.
                 </p>
             </div>
             
-            <div class="flex gap-8 justify-center">
+            <div class="flex flex-col md:flex-row gap-4 md:gap-8 justify-center px-6">
                 <button onclick="resetMission()" class="px-14 py-4 border-2 border-white/20 text-white font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all pointer-events-auto text-xs">Play Again</button>
                 <button onclick="window.print()" class="px-14 py-4 border-2 border-cyan-500/30 text-cyan-400 font-black uppercase tracking-widest rounded-xl hover:bg-cyan-500 hover:text-black transition-all pointer-events-auto text-xs">Print Award</button>
             </div>
@@ -329,23 +347,23 @@
     </div>
 
     <!-- Main HUD -->
-    <div id="main-hud-container" class="absolute inset-0 pointer-events-none z-10 hud-gradient flex flex-col justify-between p-8 transition-opacity duration-1000 opacity-0">
-        <div class="flex justify-between items-start">
+    <div id="main-hud-container" class="absolute inset-0 pointer-events-none z-10 hud-gradient flex flex-col justify-between p-4 md:p-8 transition-opacity duration-1000 opacity-0">
+        <div class="flex flex-col md:flex-row justify-between items-start gap-4">
             <div id="mission-title-container" class="transition-all duration-1000">
-                <h1 class="text-4xl font-black tracking-tighter glow-text italic leading-none uppercase">
-                    <span class="text-cyan-400">De-Orbit:</span> Space Preservation Mission 
+                <h1 class="text-2xl md:text-4xl font-black tracking-tighter glow-text italic leading-none uppercase">
+                    <span class="text-cyan-400">De-Orbit:</span> <span class="hidden md:inline">Space Preservation Mission</span> 
                 </h1>
             </div>
             
-            <div id="scanning-hud" class="text-right pointer-events-auto p-5 border border-white/10 rounded-lg backdrop-blur-xl shadow-2xl min-w-[300px]">
-                <div id="target-image-container"></div>
+            <div id="scanning-hud" class="text-right pointer-events-auto p-4 md:p-5 border border-white/10 rounded-lg backdrop-blur-xl shadow-2xl w-full md:min-w-[300px] md:w-auto">
+                <div id="target-image-container" class="h-24 md:h-32"></div>
                 
                 <div class="flex items-center justify-end gap-2 mb-2">
                     <div id="status-light" class="w-2 h-2 rounded-full bg-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]"></div>
                     <div id="status-text" class="text-[9px] text-cyan-400/60 uppercase font-black tracking-widest">Scanning Skies...</div>
                 </div>
-                <div class="text-xl font-mono font-bold text-white uppercase tracking-tighter" id="target-type">Awaiting Data</div>
-                <div class="text-[11px] font-mono text-gray-300 mt-2 tracking-widest leading-loose text-right">
+                <div class="text-lg md:text-xl font-mono font-bold text-white uppercase tracking-tighter" id="target-type">Awaiting Data</div>
+                <div class="text-[10px] md:text-[11px] font-mono text-gray-300 mt-2 tracking-widest leading-loose text-right">
                     JUNK REMAINING: <span class="text-cyan-400 font-bold" id="remaining-count">50</span><br>
                     WEIGHT CLEARED: <span class="text-cyan-400 font-bold" id="mass-count">0</span> KG
                 </div>
@@ -567,19 +585,15 @@
         const mouse = new THREE.Vector2();
         const reticle = document.getElementById('reticle');
 
+        // Handling both Wheel (Computer) and Zoom Gesture (Tablet)
         window.addEventListener('wheel', (e) => {
             if (isVictory || isTransitioning || !missionStarted) return;
             e.preventDefault();
             cameraDistance = Math.max(12, Math.min(85, cameraDistance + e.deltaY * 0.02));
         }, { passive: false });
 
-        window.addEventListener('mousemove', (e) => {
-            if (isVictory || isTransitioning || !missionStarted) return;
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-            reticle.style.left = e.clientX + 'px';
-            reticle.style.top = e.clientY + 'px';
-
+        // UNIFIED INTERACTION SYSTEM (POINTER EVENTS)
+        function updateTargeting() {
             raycaster.params.Mesh.threshold = 1.0 + (cameraDistance / 25);
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(debrisObjects);
@@ -617,10 +631,30 @@
                 }
                 debrisObjects.forEach(obj => { if (!obj.userData.mitigating && obj !== lockedTarget) { obj.scale.set(1,1,1); obj.material.color.set(0xffffff); } });
             }
+        }
+
+        window.addEventListener('pointermove', (e) => {
+            if (isVictory || isTransitioning || !missionStarted) return;
+            
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            reticle.style.left = e.clientX + 'px';
+            reticle.style.top = e.clientY + 'px';
+
+            updateTargeting();
         });
 
-        window.addEventListener('mousedown', (event) => {
+        window.addEventListener('pointerdown', (e) => {
             if (isVictory || isTransitioning || !missionStarted) return;
+            
+            // Re-update mouse pos for pointerdown (crucial for tablets where tap position matters instantly)
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            // Sync targeting on tap
+            updateTargeting();
+
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(debrisObjects);
             if (intersects.length > 0) {
@@ -639,7 +673,6 @@
                 return;
             }
 
-            // Fade out Title if still visible
             const title = document.getElementById('mission-title-container');
             if (title.style.opacity !== '0') {
                 title.style.opacity = '0';
@@ -668,7 +701,6 @@
         function startDeOrbit(target) {
             target.userData.mitigating = true;
             massCleared += target.userData.mass;
-            neutralizedHistory = []; // Corrected to just track session history if needed, or keep history.
             neutralizedHistory.push({ pos: target.position.clone(), type: target.userData.type.name });
             document.getElementById('mass-count').innerText = massCleared.toLocaleString();
 
@@ -762,7 +794,6 @@
                 screen.classList.add('active');
                 document.getElementById('cert-wrapper').classList.add('show');
                 document.getElementById('debrief-container').classList.add('show');
-                document.getElementById('steward-name').focus();
             }, 100);
             isTransitioning = false;
         }
@@ -795,7 +826,7 @@
         }
 
         let targetX = 0, targetY = 0;
-        document.addEventListener('mousemove', (e) => {
+        document.addEventListener('pointermove', (e) => {
             targetX = (e.clientX - window.innerWidth / 2) * 0.0004;
             targetY = (e.clientY - window.innerHeight / 2) * 0.0004;
         });
@@ -806,15 +837,20 @@
             const satrec = satellite.twoline2satrec("1 25544U 98067A   24033.58557022  .00016717  00000-0  10270-3 0  9018", "2 25544  51.6409  22.7663 0006324  71.8653  54.3411 15.49883441 33411");
             const pos = satellite.propagate(satrec, now).position;
             if (pos) issMarker.position.set(pos.x * SCALE_FACTOR, pos.y * SCALE_FACTOR, pos.z * SCALE_FACTOR);
+            
             earth.rotation.y += (isVictory ? 0.0001 : 0.00035); 
             clouds.rotation.y += 0.0004;
+            
             earthMaterial.uniforms.uSunDirection.value.copy(SUN_POSITION.clone().normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), -earth.rotation.y));
+            
             debrisObjects.forEach(obj => {
                 obj.userData.angle += obj.userData.speed;
                 const { dist: d, theta: t, angle: a } = obj.userData;
                 obj.position.set(d * Math.sin(t) * Math.cos(a), d * Math.cos(t), d * Math.sin(t) * Math.sin(a));
+                
                 const distToCamera = obj.position.distanceTo(camera.position);
                 const earthDist = earth.position.distanceTo(camera.position);
+                
                 if (distToCamera > earthDist + 2) {
                     obj.material.opacity = 0.25;
                     obj.material.depthTest = false; 
@@ -823,16 +859,22 @@
                     obj.material.depthTest = true;
                 }
             });
+
             const camSpeed = isVictory ? 0.02 : (missionStarted ? 0.1 : 0.02);
             camera.position.x += (targetX * cameraDistance - camera.position.x) * camSpeed;
             camera.position.y += (-targetY * 35 - camera.position.y) * camSpeed;
             camera.position.z += (cameraDistance - camera.position.z) * camSpeed;
             camera.lookAt(0, 0, 0);
+            
             renderer.render(scene, camera);
         }
 
         window.onload = () => { animate(); };
-        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+        window.addEventListener('resize', () => { 
+            camera.aspect = window.innerWidth / window.innerHeight; 
+            camera.updateProjectionMatrix(); 
+            renderer.setSize(window.innerWidth, window.innerHeight); 
+        });
     </script>
 </body>
 </html>
