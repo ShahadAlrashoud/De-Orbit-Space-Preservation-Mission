@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>  De-Orbit: Space Preservation Mission  </title>
+    <title>De-Orbit: Space Preservation Mission</title>
 
     <link rel="icon" type="image/png" href="SPACE_ROCK.png">
 
@@ -211,13 +211,48 @@
         .f-br { bottom: 30px; right: 30px; border-left: none; border-top: none; }
 
         @media print {
-            body * { visibility: hidden; }
-            #victory-screen, #victory-screen .certificate-wrapper, #victory-screen .certificate, #victory-screen .certificate * {
-                visibility: visible;
+            body, html { 
+                background: #fff !important; 
+                color: #000 !important;
+                height: auto !important;
+                overflow: visible !important;
             }
-            #victory-screen { position: absolute; left: 0; top: 0; background: white; width: 100%; }
-            .certificate { box-shadow: none; border: 5px solid #8a6d3b; margin: 0; }
-            .debrief-container, .uplink-notice { display: none !important; }
+            
+            /* Completely hide all UI elements except the victory screen content */
+            body > *:not(#victory-screen) { display: none !important; }
+            #victory-screen { 
+                display: block !important; 
+                position: static !important; 
+                background: none !important; 
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+                backdrop-filter: none !important;
+            }
+
+            /* Inside victory screen, hide debriefing and sequences */
+            #victory-screen > *:not(#cert-wrapper) { display: none !important; }
+            
+            #cert-wrapper { 
+                display: block !important;
+                margin: 0 !important; 
+                padding: 20px 0 !important;
+                transform: none !important; 
+                opacity: 1 !important; 
+            }
+
+            .certificate { 
+                box-shadow: none !important; 
+                margin: 0 auto !important;
+                border: 15px solid #8a6d3b !important;
+                page-break-inside: avoid;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                outline: 2px solid #5d4d2d !important;
+                outline-offset: -10px !important;
+            }
+            
+            .cert-name-input { border: none !important; }
         }
     </style>
 </head>
@@ -287,7 +322,7 @@
                 </div>
 
                 <div class="cert-meta">
-                    <div>DATE OF MISSION<b>--/--/--</b></div>
+                    <div>DATE OF MISSION<b id="cert-date">--/--/--</b></div>
                     <div>TOTAL JUNK REMOVED<b id="final-mass">0 KG</b></div>
                     <div>CLEARANCE ID<b>GSF-ALPHA-PRIME-9</b></div>
                 </div>
@@ -395,42 +430,42 @@
                 mass: [800, 2500], 
                 img: "old satellite.png", 
                 requiredTool: 'HARPOON', 
-                toolHint: "Heavy object. You need the HARPOON." 
+                toolHint: "heavy object. use the harpoon tool" 
             },
             ROCKET_PART: { 
                 name: "Rocket Part", 
                 mass: [3000, 7000], 
                 img: "ROCKET_PART.png", 
                 requiredTool: 'NET', 
-                toolHint: "Large chunk. Use the NET." 
+                toolHint: "Large chunk. Use the net tool." 
             },
             METAL_SHARD: { 
                 name: "Broken Fragment", 
                 mass: [50, 300], 
                 img: "METAL_SHARD.png", 
                 requiredTool: 'LASER', 
-                toolHint: "Small shard. Use the LASER." 
+                toolHint: "Small shard. Use the laser tool." 
             },
             RING_FRAGMENT: { 
                 name: "Ring Segment", 
                 mass: [400, 1200], 
                 img: "RING_FRAGMENT.png", 
                 requiredTool: 'NET', 
-                toolHint: "Wide piece. Use the NET." 
+                toolHint: "Wide piece. Use the net tool." 
             },
             SPACE_ROCK: { 
                 name: "Space Rock", 
                 mass: [100, 500], 
                 img: "SPACE_ROCK.png", 
                 requiredTool: 'LASER', 
-                toolHint: "Small rock. Use the LASER." 
+                toolHint: "Small rock. Use the laser tool." 
             }
         };
 
         const TOOLS = {
-            LASER: { title: "Cleanup Laser", text: "LASER BLAST", desc: "Uses heat to nudge small bits of junk back into Earth's atmosphere." },
+            LASER: { title: "Laser", text: "LASER BLAST", desc: "Uses heat to nudge small bits of junk back into Earth's atmosphere." },
             NET: { title: "Net", text: "NET CAPTURE", desc: "A giant web that catches and slows down large floating debris." },
-            HARPOON: { title: "Heavy Harpoon", text: "HARPOON HIT", desc: "A strong anchor that grabs heavy old satellites to pull them down." }
+            HARPOON: { title: "Harpoon", text: "HARPOON HIT", desc: "A strong anchor that grabs heavy old satellites to pull them down." }
         };
 
         function startMission() {
@@ -543,7 +578,7 @@
         }
         
         function populateOrbit() {
-            debrisObjects.forEach(d => debrisGroup.remove(d));
+            debrisObjects.forEach(obj => debrisGroup.remove(obj));
             debrisObjects = [];
             neutralizedHistory = [];
             for (let i = 0; i < 50; i++) createDebris();
@@ -639,7 +674,6 @@
                 return;
             }
 
-            // Fade out Title if still visible
             const title = document.getElementById('mission-title-container');
             if (title.style.opacity !== '0') {
                 title.style.opacity = '0';
@@ -668,7 +702,6 @@
         function startDeOrbit(target) {
             target.userData.mitigating = true;
             massCleared += target.userData.mass;
-            neutralizedHistory = []; // Corrected to just track session history if needed, or keep history.
             neutralizedHistory.push({ pos: target.position.clone(), type: target.userData.type.name });
             document.getElementById('mass-count').innerText = massCleared.toLocaleString();
 
