@@ -26,6 +26,6 @@ De-Orbit is an interactive web-based simulation that addresses the growing crisi
 
     Scan: Move your reticle over orbiting objects to identify them.
 
-    Match: Switch to the correct tool (e.g., Use the Harpoon for old satellites).
+    Match: Switch to the correct tool (e.g., Use the Harpoon for satellites).
 
     De-Orbit: Click to engage. Watch as the debris spirals into the atmosphere to burn up.
